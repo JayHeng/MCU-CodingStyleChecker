@@ -38,8 +38,9 @@ static uint32_t GetDeviceIndex(void);
 /* 所有函数(外部，内部)的定义 */
 
 /* 函数命名使用 Pascal (大骆驼峰法)，即把变量名称的第一个字母也大写
-   函数命名可由 [Action][Feature] 组成，动作在前，特性在后 */
-void InitDevice(void)
+   函数命名可由 [Action][Module][Feature] 组成，动作在前，特性在后
+   一系列同类函数，可加 MODULE_ 前缀，前缀单词全大写。 */
+void InitDevice(void)                /* 或者 DEVICE_Init() */
 {
     s_deviceConfig.index = 1;
     s_deviceConfig.mode = kDeviceMode1;
@@ -47,7 +48,7 @@ void InitDevice(void)
     s_deviceConfig.isEnabled = true;
 }
 
-static uint32_t GetDeviceIndex(void)
+static uint32_t GetDeviceIndex(void) /* 或者 DEVICE_GetIndex() */
 {
     return s_deviceConfig.index;
 }
