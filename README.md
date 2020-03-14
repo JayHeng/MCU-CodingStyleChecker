@@ -147,10 +147,9 @@ for (; i < 5;)
 ### 3.整体模板
 #### 3.1 源文件(.c)
 ```C
-
 /* 包含头文件代码 */
 
-#include "hello_world.h"
+#include "template.h"
 
 /*******************************************************************************
  * Definitions
@@ -158,13 +157,7 @@ for (; i < 5;)
 
 /* 私有(仅本源文件内使用)宏、枚举、结构体的定义 */
 
-enum _device_mode
-{
-    kDeviceMode0    = 0x00U,
-    kDeviceMode1    = 0x01U,
-
-    kDeviceModeEnd  = 0x02U,
-};
+#define MAX_DEVICES  (128U)
 
 /*******************************************************************************
  * Variables
@@ -212,8 +205,6 @@ int main(void)
     InitDevice();
     g_deviceIndex = GetDeviceIndex();
 
-    PRINTF("hello world.\r\n");
-
     while (1)
     {
     }
@@ -224,8 +215,18 @@ int main(void)
 #### 3.2 头文件(.h)
 
 ```C
-#ifndef _HELLO_WORLD_H_
-#define _HELLO_WORLD_H_
+/*
+ * Copyright xxx
+ * All rights reserved.
+ *
+ * xxx License
+ *
+ * Revision History:
+ * v1.0 - Description
+ */
+
+#ifndef _TEMPLATE_H_
+#define _TEMPLATE_H_
 
 /* 包含头文件代码 */
 
@@ -239,7 +240,13 @@ int main(void)
 
 /* 公共(可被其他源文件使用)宏、枚举、结构体的定义 */
 
-#define MAX_DEVICES  (128U)
+enum _device_mode
+{
+    kDeviceMode0    = 0x00U,
+    kDeviceMode1    = 0x01U,
+
+    kDeviceModeEnd  = 0x02U,
+};
 
 typedef struct _device_config
 {
@@ -271,7 +278,7 @@ void InitDevice(void);
 }
 #endif /*_cplusplus*/
 
-#endif /* _HELLO_WORLD_H_ */
+#endif /* _TEMPLATE_H_ */
 
 ```
 
