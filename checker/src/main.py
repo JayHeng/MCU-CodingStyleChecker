@@ -69,7 +69,9 @@ class checkerMain(QMainWindow, Ui_MainWindow):
         self.textEdit_log.clear()
         if self.fileFolderName != None:
             if os.path.isdir(self.fileFolderName):
-                pass
+                for root, dirs, files in os.walk(self.fileFolderName, topdown=True):
+                    for name in files:
+                        self._detectFileType(os.path.join(root, name))
             else:
                 self._detectFileType(self.fileFolderName)
 
