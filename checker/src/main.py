@@ -18,6 +18,8 @@ kSegmentType_API        = 4
 
 kLangKeyWord_Static     = u"static"
 
+kLangKeyWordList_Control    = [u"if", u"else if", u"for", u"while", u"switch"]
+
 class checkerMain(QMainWindow, Ui_MainWindow):
 
     def __init__(self, parent=None):
@@ -28,6 +30,7 @@ class checkerMain(QMainWindow, Ui_MainWindow):
         self.progressBar.reset()
         self.fileFolderName = None
         self.continuationContent = ''
+        self.bracePairs = 0
 
     def _initSegmentMagic(self):
         self.segmentMagicStart = u"/*******************************************************************************"
@@ -115,11 +118,9 @@ class checkerMain(QMainWindow, Ui_MainWindow):
                 (content.find(u"#if") == 0) or \
                 (content.find(u"#else") == 0) or \
                 (content.find(u"#endif") == 0) or \
-                (content.find(u"{") == 0) or \
-                (content.find(u"}") == 0) or \
                 (content.find(u".") == 0))
 
-    def _commonIsCamelCase(self, variable, isGlobal):
+    def _isVariableNamedCamelCase(self, variable, isGlobal):
         idx = 0
         if isGlobal:
             idx = 2
@@ -134,7 +135,9 @@ class checkerMain(QMainWindow, Ui_MainWindow):
                 content = self.continuationContent
                 self.continuationContent = ''
         content = self._commonRemoveInitialBlanks(content)
-        if not self._commonFindInvalidLine(content):
+        if not (self._commonFindInvalidLine(content) or \
+                (content.find(u"{") == 0) or \
+                (content.find(u"}") == 0)):
             # Try to find code expression according to the first "=" or ";"
             midIndex = content.find(u"=")
             endIndex = content.find(u";")
@@ -176,10 +179,44 @@ class checkerMain(QMainWindow, Ui_MainWindow):
                     if variable[0:2] != u"g_":
                         self._printCommonError(line, u"A prefix 'g_' is missed in the global variable <" + variable + u">")
                         return
-                if not self._commonIsCamelCase(variable, True):
+                if not self._isVariableNamedCamelCase(variable, True):
                     self._printCommonError(line, u"This variable <" + variable + u"> is not named after CamelCase")
                     return
 
+    def _isFunctionNamedPascal(self, function):
+        if function == u"main":
+            return True
+        idx = function.find(u"_")
+        if idx != -1:
+            if (idx == 0) or (not (function[0:idx].isalpha() and function[0:idx].isupper())):
+                return False
+            idx += 1
+        else:
+            idx = 0
+        return ((function[idx].isalpha() and function[idx].isupper()) and \
+                (function[idx:len(function)].find(u"_") == -1))
+
+    def _doCheckCode(self, line, content):
+        if not self._commonFindInvalidLine(content):
+            if not self.bracePairs:
+                # Try to find function expression according to the first "("
+                fndIndex = content.find(u"(")
+                if fndIndex != -1:
+                    expression = content[0:fndIndex]
+                    # Try to find function name according to the last blank in function expression
+                    blankIndex = expression.rfind(u" ")
+                    function = expression[blankIndex+1:fndIndex]
+                    #self.textEdit_log.insertPlainText("-- Find " + function + "\n")
+                    if not self._isFunctionNamedPascal(function):
+                        self._printCommonError(line, u"This function <" + function + u"()> is not named after Pascal")
+            # Count the "{ }" pair, function name resides out of any pair
+            if content.find(u"{") != -1:
+                self.bracePairs += 1
+            elif content.find(u"}") != -1:
+                if self.bracePairs:
+                    self.bracePairs -= 1
+            else:
+                pass
     def _doCheckSourceFile(self, sourceFilename):
         self._checkSegments(sourceFilename, kFileType_Source)
         with open(sourceFilename, mode="r", encoding="utf-8") as fileObj:
@@ -212,7 +249,8 @@ class checkerMain(QMainWindow, Ui_MainWindow):
                     elif segmentType == kSegmentType_Prototype:
                         pass
                     elif segmentType == kSegmentType_Code:
-                        pass
+                        #self.textEdit_log.insertPlainText("_doCheckCode(): \n")
+                        self._doCheckCode(lineCount, lineContent)
                     else:
                         pass
             fileObj.close()
