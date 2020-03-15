@@ -171,7 +171,7 @@ static device_config_t s_deviceConfig;
 
 const uint32_t g_maxDevices = MAX_DEVICES;
 
-static uint8_t *g_deviceData;
+static volatile uint8_t *s_deviceData;
 
 /*******************************************************************************
  * Prototypes

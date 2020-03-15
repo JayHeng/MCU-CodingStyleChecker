@@ -20,7 +20,7 @@
 uint32_t g_deviceIndex = 0;            /* 作用域可在文件外的全局变量加 g_ 前缀 */
 static device_config_t s_deviceConfig; /* 使用 static 修饰的全局变量加 s_ 前缀 */
 const uint32_t g_maxDevices = MAX_DEVICES;
-static uint8_t *g_deviceData;          /* volatile, const 修饰或指针型变量，
+static volatile uint8_t *s_deviceData; /* volatile, const 修饰或指针型变量，
                                           无需任何特殊表示 */
 
 /*******************************************************************************
