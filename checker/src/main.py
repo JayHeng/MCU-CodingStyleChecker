@@ -10,6 +10,14 @@ from checkerWin import *
 kFileType_Source = u".c"
 kFileType_Header = u".h"
 
+kSegmentType_Definition = 0
+kSegmentType_Variable   = 1
+kSegmentType_Prototype  = 2
+kSegmentType_Code       = 3
+kSegmentType_API        = 4
+
+kLangKeyWord_Static     = u"static"
+
 class checkerMain(QMainWindow, Ui_MainWindow):
 
     def __init__(self, parent=None):
@@ -19,6 +27,7 @@ class checkerMain(QMainWindow, Ui_MainWindow):
         self._initSegmentMagic()
         self.progressBar.reset()
         self.fileFolderName = None
+        self.continuationContent = ''
 
     def _initSegmentMagic(self):
         self.segmentMagicStart = u"/*******************************************************************************"
@@ -79,11 +88,137 @@ class checkerMain(QMainWindow, Ui_MainWindow):
                 pass
             fileObj.close()
 
-    def _doCheckHeaderFile(self, headerFilename):
-        self._checkSegments(headerFilename, kFileType_Header)
+    def _printCommonError(self, line, error):
+        self.textEdit_log.append(u"【ERROR】 Line " + str(line) + u": " + error)
+
+    def _commonFindContinuationCharacter(self, content):
+        contIndex = content.rfind(u"\\\n")
+        if (contIndex != -1) and (contIndex == len(content) - len(u"\\\n")):
+            self.continuationContent += content[0:contIndex]
+            return True
+        else:
+            if self.continuationContent != '':
+                self.continuationContent += content
+            return False
+
+    def _commonRemoveInitialBlanks(self, content):
+        startIndex = 0
+        while True:
+            if content[startIndex] != u" ":
+                break
+            else:
+                startIndex += 1
+        return content[startIndex:len(content)]
+
+    def _commonFindInvalidLine(self, content):
+        return ((content.find(u"/*") == 0) or \
+                (content.find(u"#if") == 0) or \
+                (content.find(u"#else") == 0) or \
+                (content.find(u"#endif") == 0) or \
+                (content.find(u"{") == 0) or \
+                (content.find(u"}") == 0) or \
+                (content.find(u".") == 0))
+
+    def _commonIsCamelCase(self, variable, isGlobal):
+        idx = 0
+        if isGlobal:
+            idx = 2
+        return ((variable[idx].isalpha() and variable[idx].islower()) and \
+                (variable[idx:len(variable)].find(u"_") == -1))
+
+    def _doCheckGlobalVariable(self, line, content):
+        if self._commonFindContinuationCharacter(content):
+            return
+        else:
+            if self.continuationContent != '':
+                content = self.continuationContent
+                self.continuationContent = ''
+        content = self._commonRemoveInitialBlanks(content)
+        if not self._commonFindInvalidLine(content):
+            # Try to find code expression according to the first "=" or ";"
+            midIndex = content.find(u"=")
+            endIndex = content.find(u";")
+            variable = None
+            fndIndex = 0
+            if midIndex != -1:
+                # In case there are more than one blanks before "="
+                while True:
+                    midIndex -= 1
+                    if content[midIndex] != u" ":
+                        break
+                fndIndex = midIndex + 1
+            elif endIndex != -1:
+                fndIndex = endIndex
+            else:
+                return
+            # If there is a "," in the code expression, that means each line has more than one variable
+            expression = content[0:fndIndex]
+            if expression.find(u",") != -1:
+                self._printCommonError(line, u"Only one variable can be defined per line")
+                return
+            else:
+                # Try to find variable word according to the last blank in code expression
+                blankIndex = expression.rfind(u" ")
+                variable = expression[blankIndex+1:fndIndex]
+                #self.textEdit_log.insertPlainText("-- Find " + variable + "\n")
+                # Special operation for pointer variable
+                while True:
+                    if variable[0] == u"*":
+                        variable = variable[1:len(variable)]
+                    else:
+                        break
+                # Process prefix in variable word
+                if kLangKeyWord_Static in expression:
+                    if variable[0:2] != u"s_":
+                        self._printCommonError(line, u"A prefix 's_' is missed in the static variable <" + variable + u">")
+                        return
+                else:
+                    if variable[0:2] != u"g_":
+                        self._printCommonError(line, u"A prefix 'g_' is missed in the global variable <" + variable + u">")
+                        return
+                if not self._commonIsCamelCase(variable, True):
+                    self._printCommonError(line, u"This variable <" + variable + u"> is not named after CamelCase")
+                    return
 
     def _doCheckSourceFile(self, sourceFilename):
         self._checkSegments(sourceFilename, kFileType_Source)
+        with open(sourceFilename, mode="r", encoding="utf-8") as fileObj:
+            lineCount = 0
+            isSegmentFound = False
+            segmentType = None
+            for lineContent in fileObj.readlines():
+                lineCount += 1
+                #self.textEdit_log.insertPlainText("Line " + str(lineCount) + lineContent)
+                if isSegmentFound:
+                    isSegmentFound = False
+                    if lineContent.find(self.definitionMagic) != -1:
+                        segmentType = kSegmentType_Definition
+                    elif lineContent.find(self.variableMagic) != -1:
+                        segmentType = kSegmentType_Variable
+                    elif lineContent.find(self.prototypeMagic) != -1:
+                        segmentType = kSegmentType_Prototype
+                    elif lineContent.find(self.codeMagic) != -1:
+                        segmentType = kSegmentType_Code
+                    else:
+                        pass
+                elif lineContent.find(self.segmentMagicStart) != -1:
+                     isSegmentFound = True
+                else:
+                    if segmentType == kSegmentType_Definition:
+                        pass
+                    elif segmentType == kSegmentType_Variable:
+                        #self.textEdit_log.insertPlainText("_doCheckGlobalVariable(): \n")
+                        self._doCheckGlobalVariable(lineCount, lineContent)
+                    elif segmentType == kSegmentType_Prototype:
+                        pass
+                    elif segmentType == kSegmentType_Code:
+                        pass
+                    else:
+                        pass
+            fileObj.close()
+
+    def _doCheckHeaderFile(self, headerFilename):
+        self._checkSegments(headerFilename, kFileType_Header)
 
     def _detectFileType(self, filename):
         if os.path.isfile(filename):
