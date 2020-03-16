@@ -29,9 +29,12 @@ class checkerMain(QMainWindow, Ui_MainWindow):
         self._registerCallbacks()
         self._initSegmentMagic()
         self.progressBar.reset()
+        self.lcdNumber_passRate.display(0)
         self.fileFolderName = None
         self.continuationContent = ''
         self.bracePairs = 0
+        self.totalErrorLines = 0
+        self.totalCodeLines = 0
 
     def _initSegmentMagic(self):
         self.segmentMagicStart = u"/*******************************************************************************"
@@ -95,8 +98,18 @@ class checkerMain(QMainWindow, Ui_MainWindow):
                 pass
             fileObj.close()
 
+    def _updateTotalErrorLines(self):
+        self.lineEdit_totalErrorLines.clear()
+        self.lineEdit_totalErrorLines.setText(str(self.totalErrorLines))
+
+    def _updateTotalCodeLines(self):
+        self.lineEdit_totalCodeLines.clear()
+        self.lineEdit_totalCodeLines.setText(str(self.totalCodeLines))
+
     def _printCommonError(self, line, error):
         self.textEdit_log.append(u"【ERROR】 Line " + str(line) + u": " + error)
+        self.totalErrorLines += 1
+        self._updateTotalErrorLines()
 
     def _commonFindContinuationCharacter(self, content):
         contIndex = content.rfind(u"\\\n")
@@ -117,7 +130,7 @@ class checkerMain(QMainWindow, Ui_MainWindow):
                 startIndex += 1
         return content[startIndex:len(content)]
 
-    def _commonFindInvalidLine(self, content):
+    def _commonFindInvalidCodeLine(self, content):
         return ((content.find(u"/*") == 0) or \
                 (content.find(u"#if") == 0) or \
                 (content.find(u"#else") == 0) or \
@@ -158,7 +171,7 @@ class checkerMain(QMainWindow, Ui_MainWindow):
                 content = self.continuationContent
                 self.continuationContent = ''
         content = self._commonRemoveInitialBlanks(content)
-        if not (self._commonFindInvalidLine(content) or \
+        if not (self._commonFindInvalidCodeLine(content) or \
                 (content.find(u"{") == 0) or \
                 (content.find(u"}") == 0)):
             # Try to find code expression according to the first "=" or ";"
@@ -210,7 +223,7 @@ class checkerMain(QMainWindow, Ui_MainWindow):
         return self._isPascalNamingStyle(function) or self._isLinuxUnderlineNamingStyle(function)
 
     def _doCheckCode(self, line, content):
-        if not self._commonFindInvalidLine(content):
+        if not self._commonFindInvalidCodeLine(content):
             if not self.bracePairs:
                 # Try to find function expression according to the first "("
                 fndIndex = content.find(u"(")
@@ -230,16 +243,20 @@ class checkerMain(QMainWindow, Ui_MainWindow):
                     self.bracePairs -= 1
             else:
                 pass
+
     def _doCheckSourceFile(self, sourceFilename):
         self._checkSegments(sourceFilename, kFileType_Source)
         with open(sourceFilename, mode="r", encoding="utf-8") as fileObj:
             lineCount = 0
+            blankLines = 0
             isSegmentFound = False
             segmentType = None
             for lineContent in fileObj.readlines():
                 lineCount += 1
                 #self.textEdit_log.insertPlainText("Line " + str(lineCount) + lineContent)
-                if isSegmentFound:
+                if lineContent == u"\n":
+                    blankLines += 1
+                elif isSegmentFound:
                     isSegmentFound = False
                     if lineContent.find(self.definitionMagic) != -1:
                         segmentType = kSegmentType_Definition
@@ -267,9 +284,13 @@ class checkerMain(QMainWindow, Ui_MainWindow):
                     else:
                         pass
             fileObj.close()
+            self.textEdit_log.append(u"")
+            self.totalCodeLines += lineCount - blankLines
+            self._updateTotalCodeLines()
 
     def _doCheckHeaderFile(self, headerFilename):
         self._checkSegments(headerFilename, kFileType_Header)
+        self.textEdit_log.append(u"")
 
     def _detectFileType(self, filename):
         if os.path.isfile(filename):
@@ -285,15 +306,24 @@ class checkerMain(QMainWindow, Ui_MainWindow):
             else:
                 pass
 
+    def _showPassRate(self):
+        rate = int(self.totalErrorLines * 100 / self.totalCodeLines)
+        self.lcdNumber_passRate.display(100 - rate)
+
     def callbackDoCheck(self):
         self.textEdit_log.clear()
         if self.fileFolderName != None:
+            self.totalErrorLines = 0
+            self.totalCodeLines = 0
+            self._updateTotalErrorLines()
+            self._updateTotalCodeLines()
             if os.path.isdir(self.fileFolderName):
                 for root, dirs, files in os.walk(self.fileFolderName, topdown=True):
                     for name in files:
                         self._detectFileType(os.path.join(root, name))
             else:
                 self._detectFileType(self.fileFolderName)
+            self._showPassRate()
 
     def callbackShowHomePage(self):
         QMessageBox.about(self, uilang.kMsgLanguageContentDict['homePage_title'][0], uilang.kMsgLanguageContentDict['homePage_info'][0] )
