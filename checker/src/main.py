@@ -130,12 +130,21 @@ class checkerMain(QMainWindow, Ui_MainWindow):
                 startIndex += 1
         return content[startIndex:len(content)]
 
+    def _commonLinePreprocess(self, content):
+        if self._commonFindContinuationCharacter(content):
+            return None, False
+        else:
+            if self.continuationContent != '':
+                content = self.continuationContent
+                self.continuationContent = ''
+        content = self._commonRemoveInitialBlanks(content)
+        return content, True
+
     def _commonFindInvalidCodeLine(self, content):
         return ((content.find(u"/*") == 0) or \
                 (content.find(u"#if") == 0) or \
                 (content.find(u"#else") == 0) or \
-                (content.find(u"#endif") == 0) or \
-                (content.find(u".") == 0))
+                (content.find(u"#endif") == 0))
 
     def _isCamelCaseNamingStyle(self, content):
         return ((content[0].isalpha() and content[0].islower()) and \
@@ -145,8 +154,6 @@ class checkerMain(QMainWindow, Ui_MainWindow):
         return content.islower() and content[0] != u"_"
 
     def _isPascalNamingStyle(self, content):
-        #if content == u"main":
-        #    return True
         idx = content.find(u"_")
         if idx != -1:
             if (idx == 0) or (not (content[0:idx].isalpha() and content[0:idx].isupper())):
@@ -157,6 +164,40 @@ class checkerMain(QMainWindow, Ui_MainWindow):
         return ((content[idx].isalpha() and content[idx].isupper()) and \
                 (content[idx:len(content)].find(u"_") == -1))
 
+    def _isValidMacroName(self, macro):
+        return macro.isupper() and macro[0] != u"_"
+
+    def _doCheckMacro(self, line, content):
+        idx = len(u"#define") - 1
+        wordLoc = [0, 0]
+        while True:
+            idx += 1
+            if content[idx] == u" " or content[idx] == u"(":
+                if wordLoc[0] != 0:
+                    wordLoc[1] = idx
+                    break
+            elif wordLoc[0] == 0:
+                wordLoc[0] = idx
+            else:
+                pass
+        macro = content[wordLoc[0]:wordLoc[1]]
+        if not self._isValidMacroName(macro):
+            self._printCommonError(line, u"This macro <" + macro + u"> starts with '_' or it is not all capitalized")
+
+    def _doCheckDefinition(self, line, content):
+        content, status = self._commonLinePreprocess(content)
+        if not status:
+            return
+        if not (self._commonFindInvalidCodeLine(content)):
+            if content.find(u"#define") == 0:
+                self._doCheckMacro(line, content)
+            elif content.find(u"enum") == 0 or content.find(u"typedef enum"):
+                pass
+            elif content.find(u"struct") == 0 or content.find(u"typedef struct"):
+                pass
+            else:
+                pass
+
     def _isValidVariableName(self, variable, isGlobal):
         idx = 0
         if isGlobal:
@@ -164,14 +205,11 @@ class checkerMain(QMainWindow, Ui_MainWindow):
         return self._isCamelCaseNamingStyle(variable[idx:len(variable)])
 
     def _doCheckGlobalVariable(self, line, content):
-        if self._commonFindContinuationCharacter(content):
+        content, status = self._commonLinePreprocess(content)
+        if not status:
             return
-        else:
-            if self.continuationContent != '':
-                content = self.continuationContent
-                self.continuationContent = ''
-        content = self._commonRemoveInitialBlanks(content)
         if not (self._commonFindInvalidCodeLine(content) or \
+                (content.find(u".") == 0) or \
                 (content.find(u"{") == 0) or \
                 (content.find(u"}") == 0)):
             # Try to find code expression according to the first "=" or ";"
@@ -216,13 +254,16 @@ class checkerMain(QMainWindow, Ui_MainWindow):
                         self._printCommonError(line, u"A prefix 'g_' is missed in the global variable <" + variable + u">")
                         return
                 if not self._isValidVariableName(variable, True):
-                    self._printCommonError(line, u"This variable <" + variable + u"> is not named after CamelCase")
+                    self._printCommonError(line, u"This global variable <" + variable + u"> is not named after CamelCase")
                     return
 
     def _isValidFunctionName(self, function):
         return self._isPascalNamingStyle(function) or self._isLinuxUnderlineNamingStyle(function)
 
     def _doCheckCode(self, line, content):
+        content, status = self._commonLinePreprocess(content)
+        if not status:
+            return
         if not self._commonFindInvalidCodeLine(content):
             if not self.bracePairs:
                 # Try to find function expression according to the first "("
@@ -234,7 +275,7 @@ class checkerMain(QMainWindow, Ui_MainWindow):
                     function = expression[blankIndex+1:fndIndex]
                     #self.textEdit_log.insertPlainText("-- Find " + function + "\n")
                     if not self._isValidFunctionName(function):
-                        self._printCommonError(line, u"This function <" + function + u"()> is not named after Pascal or Linux style")
+                        self._printCommonError(line, u"This function <" + function + u"()> starts with '_' or it is not named after Pascal / Linux style")
             # Count the "{ }" pair, function name resides out of any pair
             if content.find(u"{") != -1:
                 self.bracePairs += 1
@@ -272,7 +313,8 @@ class checkerMain(QMainWindow, Ui_MainWindow):
                      isSegmentFound = True
                 else:
                     if segmentType == kSegmentType_Definition:
-                        pass
+                        #self.textEdit_log.insertPlainText("_doCheckDefinition(): \n")
+                        self._doCheckDefinition(lineCount, lineContent)
                     elif segmentType == kSegmentType_Variable:
                         #self.textEdit_log.insertPlainText("_doCheckGlobalVariable(): \n")
                         self._doCheckGlobalVariable(lineCount, lineContent)
@@ -290,7 +332,38 @@ class checkerMain(QMainWindow, Ui_MainWindow):
 
     def _doCheckHeaderFile(self, headerFilename):
         self._checkSegments(headerFilename, kFileType_Header)
-        self.textEdit_log.append(u"")
+        with open(headerFilename, mode="r", encoding="utf-8") as fileObj:
+            lineCount = 0
+            blankLines = 0
+            isSegmentFound = False
+            segmentType = None
+            for lineContent in fileObj.readlines():
+                lineCount += 1
+                #self.textEdit_log.insertPlainText("Line " + str(lineCount) + lineContent)
+                if lineContent == u"\n":
+                    blankLines += 1
+                elif isSegmentFound:
+                    isSegmentFound = False
+                    if lineContent.find(self.definitionMagic) != -1:
+                        segmentType = kSegmentType_Definition
+                    elif lineContent.find(self.apiMagic) != -1:
+                        segmentType = kSegmentType_API
+                    else:
+                        pass
+                elif lineContent.find(self.segmentMagicStart) != -1:
+                     isSegmentFound = True
+                else:
+                    if segmentType == kSegmentType_Definition:
+                        #self.textEdit_log.insertPlainText("_doCheckDefinition(): \n")
+                        self._doCheckDefinition(lineCount, lineContent)
+                    elif segmentType == kSegmentType_API:
+                        pass
+                    else:
+                        pass
+            fileObj.close()
+            self.textEdit_log.append(u"")
+            self.totalCodeLines += lineCount - blankLines
+            self._updateTotalCodeLines()
 
     def _detectFileType(self, filename):
         if os.path.isfile(filename):

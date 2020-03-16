@@ -4,6 +4,9 @@
  * Definitions
  ******************************************************************************/
 
+#define MAX_devices0   (128U)
+#define MAX_devices1(a, b)  (a+b)
+#define _MAX_DEVICES2  (128U)
 
 
 /*******************************************************************************
@@ -59,7 +62,12 @@ static uint32_t DEVICE_Get_Index3(void)
     return s_deviceConfig.index;
 }
 
-static uint32_t _device_get_index4(void)
+static uint32_t _DEVICE_GetIndex4(void)
+{
+    return s_deviceConfig.index;
+}
+
+static uint32_t _device_get_index5(void)
 {
     return s_deviceConfig.index;
 }
