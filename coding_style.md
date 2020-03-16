@@ -58,10 +58,12 @@ static my_struct_name_t s_myStructVariableName;
 
 #### 1.5 函数
 
-函数命名使用 Pascal (大骆驼峰法)，即把变量名称的第一个字母也大写，例如 MyFunctionName
+函数命名使用 Pascal (大骆驼峰法)，即把变量名称的第一个字母也大写，例如 MyFunctionName()
 
 > * 函数命名可由 [Action][Module][Feature] 组成，动作在前，特性在后。如 InitDeviceClock()
 > * 一系列同类函数，可加 MODULE\_ 前缀，前缀单词全大写。如 SD 卡操作的系列函数，可为 SD_PowerOnCard()、SD_PowerOffCard()
+
+Note： 但是也可以接受 Linux 函数命名风格，即下划线命名法，单词全小写，例如 my_function_name()
 
 ### 2.代码体
 
