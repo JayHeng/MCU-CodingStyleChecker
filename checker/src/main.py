@@ -120,12 +120,31 @@ class checkerMain(QMainWindow, Ui_MainWindow):
                 (content.find(u"#endif") == 0) or \
                 (content.find(u".") == 0))
 
-    def _isVariableNamedCamelCase(self, variable, isGlobal):
+    def _isCamelCaseNamingStyle(self, content):
+        return ((content[0].isalpha() and content[0].islower()) and \
+                (content.find(u"_") == -1))
+
+    def _isLinuxUnderlineNamingStyle(self, content):
+        return content.islower() and content[0] != u"_"
+
+    def _isPascalNamingStyle(self, content):
+        #if content == u"main":
+        #    return True
+        idx = content.find(u"_")
+        if idx != -1:
+            if (idx == 0) or (not (content[0:idx].isalpha() and content[0:idx].isupper())):
+                return False
+            idx += 1
+        else:
+            idx = 0
+        return ((content[idx].isalpha() and content[idx].isupper()) and \
+                (content[idx:len(content)].find(u"_") == -1))
+
+    def _isValidVariableName(self, variable, isGlobal):
         idx = 0
         if isGlobal:
             idx = 2
-        return ((variable[idx].isalpha() and variable[idx].islower()) and \
-                (variable[idx:len(variable)].find(u"_") == -1))
+        return self._isCamelCaseNamingStyle(variable[idx:len(variable)])
 
     def _doCheckGlobalVariable(self, line, content):
         if self._commonFindContinuationCharacter(content):
@@ -179,22 +198,12 @@ class checkerMain(QMainWindow, Ui_MainWindow):
                     if variable[0:2] != u"g_":
                         self._printCommonError(line, u"A prefix 'g_' is missed in the global variable <" + variable + u">")
                         return
-                if not self._isVariableNamedCamelCase(variable, True):
+                if not self._isValidVariableName(variable, True):
                     self._printCommonError(line, u"This variable <" + variable + u"> is not named after CamelCase")
                     return
 
-    def _isFunctionNamedPascal(self, function):
-        if function == u"main":
-            return True
-        idx = function.find(u"_")
-        if idx != -1:
-            if (idx == 0) or (not (function[0:idx].isalpha() and function[0:idx].isupper())):
-                return False
-            idx += 1
-        else:
-            idx = 0
-        return ((function[idx].isalpha() and function[idx].isupper()) and \
-                (function[idx:len(function)].find(u"_") == -1))
+    def _isValidFunctionName(self, function):
+        return self._isPascalNamingStyle(function) or self._isLinuxUnderlineNamingStyle(function)
 
     def _doCheckCode(self, line, content):
         if not self._commonFindInvalidLine(content):
@@ -207,8 +216,8 @@ class checkerMain(QMainWindow, Ui_MainWindow):
                     blankIndex = expression.rfind(u" ")
                     function = expression[blankIndex+1:fndIndex]
                     #self.textEdit_log.insertPlainText("-- Find " + function + "\n")
-                    if not self._isFunctionNamedPascal(function):
-                        self._printCommonError(line, u"This function <" + function + u"()> is not named after Pascal")
+                    if not self._isValidFunctionName(function):
+                        self._printCommonError(line, u"This function <" + function + u"()> is not named after Pascal or Linux style")
             # Count the "{ }" pair, function name resides out of any pair
             if content.find(u"{") != -1:
                 self.bracePairs += 1
@@ -285,7 +294,7 @@ class checkerMain(QMainWindow, Ui_MainWindow):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     main_win = checkerMain()
-    main_win.setWindowTitle(u"MCUXpresso SDK Coding Style Checker v0.1")
+    main_win.setWindowTitle(u"MCUXpresso SDK Coding Style Checker v0.2")
     main_win.setWindowIcon(QIcon(u"../img/MCUX-SDK-CodingStyleChecker.ico"))
     main_win.show()
     sys.exit(app.exec_())

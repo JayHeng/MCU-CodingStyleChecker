@@ -59,6 +59,11 @@ static uint32_t DEVICE_Get_Index3(void)
     return s_deviceConfig.index;
 }
 
+static uint32_t _device_get_index4(void)
+{
+    return s_deviceConfig.index;
+}
+
 int main(void)
 {
     uint8_t i = 0;
