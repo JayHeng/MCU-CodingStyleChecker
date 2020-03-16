@@ -7,9 +7,13 @@ kRevision_1_0_en   =  "【v0.2】 \n" + \
                       "  Feature: \n" + \
                       "     1. Can select file or folder to check \n" + \
                       "     2. Auto detect .c/.h file, and the file should be utf-8/ascii encoded \n" + \
-                      "     3. Can check general comment (Defintions/Variables/Prototypes/Code/API) \n" + \
-                      "     4. Can check global variable naming \n" + \
-                      "     5. Can check function naming \n\n"
+                      "     3. Can show statistical info of check results \n" + \
+                      "     4. Can check general comment (Defintions/Variables/Prototypes/Code/API) \n" + \
+                      "     5. Can check global variable naming \n" + \
+                      "     6. Can check function naming \n" + \
+                      "     7. Can check macro naming \n" + \
+                      "     8. Can check enumeration naming \n" + \
+                      "     9. Can check struct naming \n\n"
 
 kMsgLanguageContentDict = {
         'homePage_title':                     ['Home Page'],
