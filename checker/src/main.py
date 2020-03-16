@@ -3,7 +3,8 @@
 import sys
 import os
 import chardet
-from PyQt5.QtWidgets import QApplication, QMainWindow
+import uilang
+from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox
 from PyQt5.QtGui import QIcon
 from checkerWin import *
 
@@ -44,6 +45,9 @@ class checkerMain(QMainWindow, Ui_MainWindow):
     def _registerCallbacks(self):
         self.pushButton_browseFileFolder.clicked.connect(self.callbackBrowseFileFolder)
         self.pushButton_doCheck.clicked.connect(self.callbackDoCheck)
+        self.actionMenuHelpHomePage.triggered.connect(self.callbackShowHomePage)
+        self.actionMenuHelpAboutAuthor.triggered.connect(self.callbackShowAboutAuthor)
+        self.actionMenuHelpRevisionHistory.triggered.connect(self.callbackShowRevisionHistory)
 
     def callbackBrowseFileFolder(self):
         if self.checkBox_isFolder.isChecked():
@@ -290,6 +294,15 @@ class checkerMain(QMainWindow, Ui_MainWindow):
                         self._detectFileType(os.path.join(root, name))
             else:
                 self._detectFileType(self.fileFolderName)
+
+    def callbackShowHomePage(self):
+        QMessageBox.about(self, uilang.kMsgLanguageContentDict['homePage_title'][0], uilang.kMsgLanguageContentDict['homePage_info'][0] )
+
+    def callbackShowAboutAuthor(self):
+        QMessageBox.about(self, uilang.kMsgLanguageContentDict['aboutAuthor_title'][0], uilang.kMsgLanguageContentDict['aboutAuthor_author'][0] )
+
+    def callbackShowRevisionHistory(self):
+        QMessageBox.about(self, uilang.kMsgLanguageContentDict['revisionHistory_title'][0], uilang.kMsgLanguageContentDict['revisionHistory_v1_0'][0] )
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
