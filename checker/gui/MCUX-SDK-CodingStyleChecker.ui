@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>802</width>
+    <width>725</width>
     <height>555</height>
    </rect>
   </property>
@@ -14,7 +14,7 @@
    <string>MCUXpresso SDK Coding Style Checker</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QPushButton" name="pushButton_codingRuleSetting">
+   <widget class="QPushButton" name="pushButton_codingStyleSetting">
     <property name="geometry">
      <rect>
       <x>10</x>
@@ -23,9 +23,14 @@
       <height>51</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <family>微软雅黑</family>
+      <pointsize>9</pointsize>
+     </font>
+    </property>
     <property name="text">
-     <string>Coding Rule 
-
+     <string>Coding Style 
  Setting</string>
     </property>
    </widget>
@@ -34,7 +39,7 @@
      <rect>
       <x>10</x>
       <y>70</y>
-      <width>781</width>
+      <width>621</width>
       <height>411</height>
      </rect>
     </property>
@@ -47,7 +52,7 @@
      <rect>
       <x>10</x>
       <y>490</y>
-      <width>781</width>
+      <width>701</width>
       <height>23</height>
      </rect>
     </property>
@@ -83,7 +88,7 @@
      <rect>
       <x>190</x>
       <y>10</y>
-      <width>441</width>
+      <width>371</width>
       <height>21</height>
      </rect>
     </property>
@@ -117,7 +122,7 @@
    <widget class="QCheckBox" name="checkBox_isFolder">
     <property name="geometry">
      <rect>
-      <x>720</x>
+      <x>570</x>
       <y>10</y>
       <width>61</width>
       <height>21</height>
@@ -136,6 +141,13 @@
       <height>21</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <family>微软雅黑</family>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
     <property name="text">
      <string>Check</string>
     </property>
@@ -143,14 +155,101 @@
    <widget class="QPushButton" name="pushButton_saveLog">
     <property name="geometry">
      <rect>
-      <x>720</x>
-      <y>40</y>
+      <x>640</x>
+      <y>450</y>
       <width>71</width>
-      <height>21</height>
+      <height>31</height>
      </rect>
     </property>
     <property name="text">
      <string>Save Log</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_passRate">
+    <property name="geometry">
+     <rect>
+      <x>640</x>
+      <y>80</y>
+      <width>71</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Pass Rate (%)</string>
+    </property>
+   </widget>
+   <widget class="QLCDNumber" name="lcdNumber_passRate">
+    <property name="geometry">
+     <rect>
+      <x>640</x>
+      <y>110</y>
+      <width>71</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="lineWidth">
+     <number>2</number>
+    </property>
+    <property name="midLineWidth">
+     <number>1</number>
+    </property>
+    <property name="digitCount">
+     <number>3</number>
+    </property>
+    <property name="mode">
+     <enum>QLCDNumber::Dec</enum>
+    </property>
+    <property name="value" stdset="0">
+     <double>100.000000000000000</double>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_totalErrorLines">
+    <property name="geometry">
+     <rect>
+      <x>640</x>
+      <y>170</y>
+      <width>81</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Total Error Lines</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_totalCodeLines">
+    <property name="geometry">
+     <rect>
+      <x>640</x>
+      <y>240</y>
+      <width>81</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Total Code Lines</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="lineEdit_totalCodeLines">
+    <property name="geometry">
+     <rect>
+      <x>640</x>
+      <y>270</y>
+      <width>71</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="lineEdit_totalErrorLines">
+    <property name="geometry">
+     <rect>
+      <x>640</x>
+      <y>200</y>
+      <width>71</width>
+      <height>31</height>
+     </rect>
     </property>
    </widget>
   </widget>
@@ -159,7 +258,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>802</width>
+     <width>725</width>
      <height>21</height>
     </rect>
    </property>
