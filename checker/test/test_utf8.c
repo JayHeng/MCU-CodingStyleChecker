@@ -8,6 +8,78 @@
 #define MAX_devices1(a, b)  (a+b)
 #define _MAX_DEVICES2  (128U)
 
+enum device_mode0
+{
+    kDeviceMode0    = 0x00U,
+};
+
+enum _DEVICE_mode1
+{
+    kDeviceMode0    = 0x00U,
+};
+
+typedef enum _device_mode2
+{
+    kDeviceMode0    = 0x00U,
+} _device_mode2_t;
+
+typedef enum _device_mode3
+{
+    kDeviceMode0    = 0x00U,
+} DEVICE_mode3_t;
+
+typedef enum _device_mode4
+{
+    kDeviceMode0    = 0x00U,
+} DEVICE_mode4;
+
+typedef enum _device_mode5
+{
+    deviceMode0     = 0x00U,
+} device_mode5_t;
+
+typedef enum _device_mode6
+{
+    kDeviceMode0    = 0x00U,
+    kDeviceMode1,
+    kdeviceMode2    = 0x02U,
+} device_mode6_t;
+
+struct device_config0
+{
+    uint32_t index;
+};
+
+struct _DEVICE_config1
+{
+    uint32_t index;
+};
+
+typedef struct _device_config2
+{
+    uint32_t index;
+} _device_config2_t;
+
+typedef struct _device_config3
+{
+    uint32_t index;
+} DEVICE_config3_t;
+
+typedef struct _device_config4
+{
+    uint32_t index;
+} DEVICE_config4;
+
+typedef struct _device_config5
+{
+    uint32_t Index;
+} device_config5_t;
+
+typedef struct _device_config6
+{
+    uint32_t index;
+    uint32_t mo_de;
+} device_config6_t;
 
 /*******************************************************************************
  * Variables

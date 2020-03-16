@@ -33,6 +33,10 @@ class checkerMain(QMainWindow, Ui_MainWindow):
         self.fileFolderName = None
         self.continuationContent = ''
         self.bracePairs = 0
+        self.onProgressEnumName = u""
+        self.isEnumOnProgress = False
+        self.onProgressStructName = u""
+        self.isStructOnProgress = False
         self.totalErrorLines = 0
         self.totalCodeLines = 0
 
@@ -164,25 +168,110 @@ class checkerMain(QMainWindow, Ui_MainWindow):
         return ((content[idx].isalpha() and content[idx].isupper()) and \
                 (content[idx:len(content)].find(u"_") == -1))
 
+    def _getDefinitionWord(self, content, startIdx, endChar):
+        wordLoc = [0, 0]
+        while True:
+            startIdx += 1
+            if content[startIdx] == u" " or content[startIdx] == endChar or content[startIdx] == u"\n":
+                if wordLoc[0] != 0:
+                    wordLoc[1] = startIdx
+                    break
+            elif wordLoc[0] == 0:
+                wordLoc[0] = startIdx
+            else:
+                pass
+        return content[wordLoc[0]:wordLoc[1]]
+
     def _isValidMacroName(self, macro):
         return macro.isupper() and macro[0] != u"_"
 
     def _doCheckMacro(self, line, content):
         idx = len(u"#define") - 1
-        wordLoc = [0, 0]
-        while True:
-            idx += 1
-            if content[idx] == u" " or content[idx] == u"(":
-                if wordLoc[0] != 0:
-                    wordLoc[1] = idx
-                    break
-            elif wordLoc[0] == 0:
-                wordLoc[0] = idx
-            else:
-                pass
-        macro = content[wordLoc[0]:wordLoc[1]]
+        macro = self._getDefinitionWord(content, idx, u"(")
         if not self._isValidMacroName(macro):
             self._printCommonError(line, u"This macro <" + macro + u"> starts with '_' or it is not all capitalized")
+
+    def _isValidEnumStructTypeName(self, mtype):
+        return mtype.islower() and mtype[0] == u"_"
+
+    def _isValidEnumStructTypedefName(self, mtype):
+        return mtype.islower() and mtype[0] != u"_" and mtype[len(mtype)-2:len(mtype)] == u"_t"
+
+    def _isValidEnumeratorName(self, enum):
+        return enum[0] == u"k" and enum[1].isupper()
+
+    def _doCheckEnum(self, line, content):
+        if not self.isEnumOnProgress:
+            idx = content.find(u"enum") + len(u"enum") - 1
+            enumType = self._getDefinitionWord(content, idx, u"{")
+            if not self._isValidEnumStructTypeName(enumType):
+                self._printCommonError(line, u"This enum type name <" + enumType + u"> is not valid")
+            else:
+                self.onProgressEnumName = enumType
+                self.isEnumOnProgress = True
+        else:
+            if content[0] == "}":
+                enumTypedef = self._getDefinitionWord(content, 0, u";")
+                if enumTypedef[0] != u";" and (not self._isValidEnumStructTypedefName(enumTypedef)):
+                    self._printCommonError(line, u"This enum typedef name <" + enumTypedef + u"> is not valid")
+                self.isEnumOnProgress = False
+            elif content[0] != "{":
+                if not self._isValidEnumeratorName(content[0:2]):
+                    self._printCommonError(line, u"This enum type <" + self.onProgressEnumName + u"> contains invalid enumerator name")
+                    self.isEnumOnProgress = False
+
+    def _isValidStructMemberName(self, struct):
+        return self._isValidVariableName(struct, False)
+
+    def _findValidLocalVariable(self, content, isBssSection=True):
+        # Try to find code expression according to the first "=" or ";"
+        midIndex = -1
+        if not isBssSection:
+            midIndex = content.find(u"=")
+        endIndex = content.find(u";")
+        variable = None
+        fndIndex = 0
+        if midIndex != -1:
+            # In case there are more than one blanks before "="
+            while True:
+                midIndex -= 1
+                if content[midIndex] != u" ":
+                    break
+            fndIndex = midIndex + 1
+        elif endIndex != -1:
+            fndIndex = endIndex
+        else:
+            return True
+        expression = content[0:fndIndex]
+        # Try to find variable word according to the last blank in code expression
+        blankIndex = expression.rfind(u" ")
+        variable = expression[blankIndex+1:fndIndex]
+        while True:
+            if variable[0] == u"*":
+                variable = variable[1:len(variable)]
+            else:
+                break
+        return self._isValidVariableName(variable, False)
+
+    def _doCheckStruct(self, line, content):
+        if not self.isStructOnProgress:
+            idx = content.find(u"struct") + len(u"struct") - 1
+            structType = self._getDefinitionWord(content, idx, u"{")
+            if not self._isValidEnumStructTypeName(structType):
+                self._printCommonError(line, u"This struct type name <" + structType + u"> is not valid")
+            else:
+                self.onProgressStructName = structType
+                self.isStructOnProgress = True
+        else:
+            if content[0] == "}":
+                structTypedef = self._getDefinitionWord(content, 0, u";")
+                if structTypedef[0] != u";" and (not self._isValidEnumStructTypedefName(structTypedef)):
+                    self._printCommonError(line, u"This struct typedef name <" + structTypedef + u"> is not valid")
+                self.isStructOnProgress = False
+            elif content[0] != "{":
+                if not self._findValidLocalVariable(content):
+                    self._printCommonError(line, u"This struct type <" + self.onProgressStructName + u"> contains invalid member name")
+                    self.isStructOnProgress = False
 
     def _doCheckDefinition(self, line, content):
         content, status = self._commonLinePreprocess(content)
@@ -191,12 +280,15 @@ class checkerMain(QMainWindow, Ui_MainWindow):
         if not (self._commonFindInvalidCodeLine(content)):
             if content.find(u"#define") == 0:
                 self._doCheckMacro(line, content)
-            elif content.find(u"enum") == 0 or content.find(u"typedef enum"):
-                pass
-            elif content.find(u"struct") == 0 or content.find(u"typedef struct"):
-                pass
             else:
-                pass
+                if self.isEnumOnProgress or \
+                   (content.find(u"enum") == 0 or (content.find(u"typedef") == 0 and content.find(u"enum") != -1)):
+                    self._doCheckEnum(line, content)
+                elif self.isStructOnProgress or \
+                     (content.find(u"struct") == 0 or (content.find(u"typedef") == 0 and content.find(u"struct") != -1)):
+                    self._doCheckStruct(line, content)
+                else:
+                    pass
 
     def _isValidVariableName(self, variable, isGlobal):
         idx = 0
