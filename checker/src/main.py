@@ -61,6 +61,7 @@ class checkerMain(QMainWindow, Ui_MainWindow):
             self.fileFolderName = QtWidgets.QFileDialog.getExistingDirectory(self, u"Browse Folder", os.getcwd())
         else:
             self.fileFolderName, fileType = QtWidgets.QFileDialog.getOpenFileName(self, u"Browse File", os.getcwd(), "All Files(*);;Source Files(*.c)")
+        #self.fileFolderName = self.fileFolderName.encode('utf-8').encode("gbk")
         self.textEdit_inputFileFolder.setPlainText(self.fileFolderName)
 
     def _fileCheckSeparator(self, filename):

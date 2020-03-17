@@ -12,8 +12,8 @@ kRevision_1_0_en   =  "【v0.3】 \n" + \
                       "     5. Can check global variable name \n" + \
                       "     6. Can check function name \n" + \
                       "     7. Can check macro name \n" + \
-                      "     8. Can check enumeration name \n" + \
-                      "     9. Can check struct name \n" + \
+                      "     8. Can check enumeration type name \n" + \
+                      "     9. Can check struct type name \n" + \
                       "     10. Can check header file guard macro \n\n"
 
 kMsgLanguageContentDict = {
