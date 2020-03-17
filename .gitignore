@@ -12,6 +12,7 @@
 *.fbp.bak
 
 /checker/.idea
+/checker/doc/
 /bin/*.json
 
 # Python bytecode

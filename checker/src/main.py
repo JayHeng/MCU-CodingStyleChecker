@@ -2,6 +2,7 @@
 # -*- coding: UTF-8 -*-
 import sys
 import os
+import time
 import chardet
 import uilang
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox
@@ -52,6 +53,7 @@ class checkerMain(QMainWindow, Ui_MainWindow):
     def _registerCallbacks(self):
         self.pushButton_browseFileFolder.clicked.connect(self.callbackBrowseFileFolder)
         self.pushButton_doCheck.clicked.connect(self.callbackDoCheck)
+        self.pushButton_saveLog.clicked.connect(self.callbackSaveLog)
         self.actionMenuHelpHomePage.triggered.connect(self.callbackShowHomePage)
         self.actionMenuHelpAboutAuthor.triggered.connect(self.callbackShowAboutAuthor)
         self.actionMenuHelpRevisionHistory.triggered.connect(self.callbackShowRevisionHistory)
@@ -508,6 +510,15 @@ class checkerMain(QMainWindow, Ui_MainWindow):
             else:
                 self._detectFileType(self.fileFolderName)
             self._showPassRate()
+
+    def callbackSaveLog(self):
+        logPath = os.path.abspath(os.path.dirname(__file__))
+        logPath = os.path.join(os.path.dirname(logPath), u"log")
+        logFilename = os.path.join(logPath, time.strftime('%Y-%m-%d_%Hh%Mm%Ss',time.localtime(time.time())) + '.txt')
+        with open(logFilename, mode="w", encoding="utf-8") as fileObj:
+            fileObj.write(self.textEdit_log.toPlainText())
+            fileObj.close()
+        QMessageBox.about(self, u"Info", u"Log is saved in file: " + logFilename + u"\n")
 
     def callbackShowHomePage(self):
         QMessageBox.about(self, uilang.kMsgLanguageContentDict['homePage_title'][0], uilang.kMsgLanguageContentDict['homePage_info'][0] )
