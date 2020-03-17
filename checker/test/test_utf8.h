@@ -1,4 +1,8 @@
 
+#ifndef _test_utf8_h_
+#ifndef TEST_UTF8_H
+#ifndef _TEST_UTF8_
+
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
@@ -14,5 +18,7 @@
  * API
  ******************************************************************************/
 
-
+#endif
+#endif
+#endif
 

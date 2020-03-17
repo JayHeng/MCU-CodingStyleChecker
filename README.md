@@ -26,6 +26,15 @@
 > * 支持检查枚举定义的命名规范（在Definitions注释头下） - coding_style.md | rule 1.3  
 > * 支持检查结构体定义的命名规范（在Definitions注释头下） - coding_style.md | rule 1.4  
 > * 支持检查函数的命名规范（在Code注释头下） - coding_style.md | rule 1.5  
+> * 支持检查头文件保护宏 - coding_style.md | rule 2.7  
+
+　　To-Do List：  
+
+> * 支持 coding_style.md里的 rule 2.x  
+> * 支持检查规则设置（使能/不使能，命名风格自选择）  
+> * 支持过滤文件/文件夹规则设置  
+> * 支持检查的实时进度条显示  
+> * 支持检查结果Log的保存  
 
 ![](http://henjay724.com/image/github/MCUXpresso-SDK-CodingStyleChecker_v0.2.PNG)
 

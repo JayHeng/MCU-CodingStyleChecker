@@ -111,7 +111,10 @@ class checkerMain(QMainWindow, Ui_MainWindow):
         self.lineEdit_totalCodeLines.setText(str(self.totalCodeLines))
 
     def _printCommonError(self, line, error):
-        self.textEdit_log.append(u"【ERROR】 Line " + str(line) + u": " + error)
+        if line != None:
+            self.textEdit_log.append(u"【ERROR】 Line " + str(line) + u": " + error)
+        else:
+            self.textEdit_log.append(u"【ERROR】: " + error)
         self.totalErrorLines += 1
         self._updateTotalErrorLines()
 
@@ -424,7 +427,20 @@ class checkerMain(QMainWindow, Ui_MainWindow):
             self.totalCodeLines += lineCount - blankLines
             self._updateTotalCodeLines()
 
+    def _checkHeaderGuardMacro(self, filename):
+        with open(filename, mode="r", encoding="utf-8") as fileObj:
+            name = os.path.split(filename)[1]
+            name = name.upper()
+            name = name.replace(u".", u"_")
+            name = u"_" + name + u"_"
+            magic = u"#ifndef " + name
+            content = fileObj.read()
+            if content.find(magic) == -1:
+                self._printCommonError(None, u"<" + magic + u"> is missed in this header file")
+            fileObj.close()
+
     def _doCheckHeaderFile(self, headerFilename):
+        self._checkHeaderGuardMacro(headerFilename)
         self._checkSegments(headerFilename, kFileType_Header)
         with open(headerFilename, mode="r", encoding="utf-8") as fileObj:
             lineCount = 0
@@ -504,7 +520,7 @@ class checkerMain(QMainWindow, Ui_MainWindow):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     main_win = checkerMain()
-    main_win.setWindowTitle(u"MCUXpresso SDK Coding Style Checker v0.2")
+    main_win.setWindowTitle(u"MCUXpresso SDK Coding Style Checker v0.3")
     main_win.setWindowIcon(QIcon(u"../img/MCUX-SDK-CodingStyleChecker.ico"))
     main_win.show()
     sys.exit(app.exec_())

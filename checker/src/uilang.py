@@ -3,7 +3,7 @@
 import sys
 import os
 
-kRevision_1_0_en   =  "【v0.2】 \n" + \
+kRevision_1_0_en   =  "【v0.3】 \n" + \
                       "  Feature: \n" + \
                       "     1. Can select file or folder to check \n" + \
                       "     2. Auto detect .c/.h file, and the file should be utf-8/ascii encoded \n" + \
@@ -13,7 +13,8 @@ kRevision_1_0_en   =  "【v0.2】 \n" + \
                       "     6. Can check function name \n" + \
                       "     7. Can check macro name \n" + \
                       "     8. Can check enumeration name \n" + \
-                      "     9. Can check struct name \n\n"
+                      "     9. Can check struct name \n" + \
+                      "     10. Can check header file guard macro \n\n"
 
 kMsgLanguageContentDict = {
         'homePage_title':                     ['Home Page'],
