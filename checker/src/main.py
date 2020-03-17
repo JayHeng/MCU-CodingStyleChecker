@@ -216,6 +216,7 @@ class checkerMain(QMainWindow, Ui_MainWindow):
                     self._printCommonError(line, u"This enum typedef name <" + enumTypedef + u"> is not valid")
                 self.isEnumOnProgress = False
             elif content[0] != "{":
+                # If first invalid enumerator is found, then it will stop checking the following enumerators (nno matter it is valid or not)
                 if not self._isValidEnumeratorName(content[0:2]):
                     self._printCommonError(line, u"This enum type <" + self.onProgressEnumName + u"> contains invalid enumerator name")
                     self.isEnumOnProgress = False
@@ -269,6 +270,7 @@ class checkerMain(QMainWindow, Ui_MainWindow):
                     self._printCommonError(line, u"This struct typedef name <" + structTypedef + u"> is not valid")
                 self.isStructOnProgress = False
             elif content[0] != "{":
+                # If first invalid member is found, then it will stop checking the following member (nno matter it is valid or not)
                 if not self._findValidLocalVariable(content):
                     self._printCommonError(line, u"This struct type <" + self.onProgressStructName + u"> contains invalid member name")
                     self.isStructOnProgress = False
