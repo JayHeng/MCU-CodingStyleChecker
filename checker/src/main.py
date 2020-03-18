@@ -134,7 +134,9 @@ class checkerMain(QMainWindow, Ui_MainWindow):
     def _commonRemoveInitialBlanks(self, content):
         startIndex = 0
         while True:
-            if content[startIndex] != u" ":
+            if startIndex == len(content):
+                return None
+            elif content[startIndex] != u" ":
                 break
             else:
                 startIndex += 1
@@ -148,7 +150,10 @@ class checkerMain(QMainWindow, Ui_MainWindow):
                 content = self.continuationContent
                 self.continuationContent = ''
         content = self._commonRemoveInitialBlanks(content)
-        return content, True
+        if content == None:
+            return content, False
+        else:
+            return content, True
 
     def _commonFindInvalidCodeLine(self, content):
         return ((content.find(u"/*") == 0) or \
