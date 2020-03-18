@@ -30,7 +30,7 @@ class checkerMain(QMainWindow, Ui_MainWindow):
         self._registerCallbacks()
         self._initSegmentMagic()
         self.progressBar.reset()
-        self.lcdNumber_passRate.display(0)
+        self.lcdNumber_errorRate.display(0)
         self.fileFolderName = None
         self.continuationContent = ''
         self.bracePairs = 0
@@ -497,9 +497,9 @@ class checkerMain(QMainWindow, Ui_MainWindow):
             else:
                 pass
 
-    def _showPassRate(self):
-        rate = int(self.totalErrorLines * 100 / self.totalCodeLines)
-        self.lcdNumber_passRate.display(100 - rate)
+    def _showErrorRate(self):
+        rate = self.totalErrorLines * 100.0 / self.totalCodeLines
+        self.lcdNumber_errorRate.display(rate)
 
     def callbackDoCheck(self):
         self.textEdit_log.clear()
@@ -514,7 +514,7 @@ class checkerMain(QMainWindow, Ui_MainWindow):
                         self._detectFileType(os.path.join(root, name))
             else:
                 self._detectFileType(self.fileFolderName)
-            self._showPassRate()
+            self._showErrorRate()
 
     def callbackSaveLog(self):
         logPath = os.path.abspath(os.path.dirname(__file__))
@@ -537,7 +537,7 @@ class checkerMain(QMainWindow, Ui_MainWindow):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     main_win = checkerMain()
-    main_win.setWindowTitle(u"MCUXpresso SDK Coding Style Checker v0.3")
+    main_win.setWindowTitle(u"MCUXpresso SDK Coding Style Checker v0.5")
     main_win.setWindowIcon(QIcon(u"../img/MCUX-SDK-CodingStyleChecker.ico"))
     main_win.show()
     sys.exit(app.exec_())
