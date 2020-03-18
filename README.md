@@ -11,7 +11,7 @@
 
 ### 3.检查工具
 
-　　MCUXpresso SDK Coding Style Checker 是恩智浦 SDK 驱动 C 代码风格配套检查工具，其功能类似于 JAVA 代码下的 [CheckStyle](https://github.com/checkstyle/checkstyle) 工具（默认绑定 Google 风格以及 Sun 规范），也类似于 [Linux](https://github.com/torvalds/linux) 下的 scripts/checkpatch.pl 脚本，只不过提供的规范检查没有这两个工具丰富，是一个轻量级的工具。此外本工具基于 PyQt5 做了一个简洁的 GUI，更适合普通 MCU 开发者使用。  
+　　MCUXpresso SDK Coding Style Checker 是恩智浦 SDK 驱动 C 代码风格配套检查工具，其功能类似于 [Linux](https://github.com/torvalds/linux) 下的 scripts/checkpatch.pl 脚本和谷歌开源项目 [styleguide](https://github.com/google/styleguide) 下的 cpplint/cpplint.py 脚本，只不过提供的规范检查没有这两个工具丰富，是一个轻量级的工具。此外本工具基于 PyQt5 做了一个简洁的 GUI，更适合普通 MCU 开发者使用。  
 
 > * 工具：\MCUX-SDK-Coding-Style\checker\bin\MCUX-SDK-CodingStyleChecker.exe
 
@@ -31,6 +31,7 @@
 
 　　To-Do List：  
 
+> * 集成clang-format，检测开始前自动先做一次格式化  
 > * 支持 coding_style.md里的 rule 2.x  
 > * 支持检查规则设置（使能/不使能，命名风格自选择）  
 > * 支持过滤文件/文件夹规则设置  
