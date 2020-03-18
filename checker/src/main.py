@@ -419,15 +419,24 @@ class checkerMain(QMainWindow, Ui_MainWindow):
                 else:
                     if segmentType == kSegmentType_Definition:
                         #self.textEdit_log.insertPlainText("_doCheckDefinition(): \n")
-                        self._doCheckDefinition(lineCount, lineContent)
+                        try:
+                            self._doCheckDefinition(lineCount, lineContent)
+                        except:
+                            pass
                     elif segmentType == kSegmentType_Variable:
                         #self.textEdit_log.insertPlainText("_doCheckGlobalVariable(): \n")
-                        self._doCheckGlobalVariable(lineCount, lineContent)
+                        try:
+                            self._doCheckGlobalVariable(lineCount, lineContent)
+                        except:
+                            pass
                     elif segmentType == kSegmentType_Prototype:
                         pass
                     elif segmentType == kSegmentType_Code:
                         #self.textEdit_log.insertPlainText("_doCheckCode(): \n")
-                        self._doCheckCode(lineCount, lineContent)
+                        try:
+                            self._doCheckCode(lineCount, lineContent)
+                        except:
+                            pass
                     else:
                         pass
             fileObj.close()
@@ -473,7 +482,10 @@ class checkerMain(QMainWindow, Ui_MainWindow):
                 else:
                     if segmentType == kSegmentType_Definition:
                         #self.textEdit_log.insertPlainText("_doCheckDefinition(): \n")
-                        self._doCheckDefinition(lineCount, lineContent)
+                        try:
+                            self._doCheckDefinition(lineCount, lineContent)
+                        except:
+                            pass
                     elif segmentType == kSegmentType_API:
                         pass
                     else:

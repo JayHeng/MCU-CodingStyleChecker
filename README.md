@@ -19,7 +19,7 @@
 
 > * 支持选择单文件或整个文件夹去检查  
 > * 自动识别 .c/.h 后缀文件，但要保证文件是 UTF-8 或 ASCII 编码（即不能包含非英文字符）  
-> * 能够显示检查结果的统计信息（总代码行，错误行，通过率）  
+> * 能够显示检查结果的统计信息（总代码行，错误行，错误率）  
 > * 支持检查结果Log的保存  
 > * 支持检查五种通用注释头（Definitions/Variables/Prototypes/Code/API）  
 > * 支持检查全局变量的命名规范（在Variables注释头下） - coding_style.md | rule 1.1  
@@ -36,5 +36,5 @@
 > * 支持过滤文件/文件夹规则设置  
 > * 支持检查的实时进度条显示  
 
-![](http://henjay724.com/image/github/MCUXpresso-SDK-CodingStyleChecker_v0.3.PNG)
+![](http://henjay724.com/image/github/MCUXpresso-SDK-CodingStyleChecker_v0.5.PNG)
 
