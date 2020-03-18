@@ -3,7 +3,7 @@
 import sys
 import os
 
-kRevision_1_0_en   =  "【v0.3】 \n" + \
+kRevision_1_0_en   =  "【v0.5】 \n" + \
                       "  Feature: \n" + \
                       "     1. Can select file or folder to check \n" + \
                       "     2. Auto detect .c/.h file, and the file should be utf-8/ascii encoded \n" + \
