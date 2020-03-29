@@ -27,8 +27,8 @@ class checkerMain(QMainWindow, Ui_MainWindow):
     def __init__(self, parent=None):
         super(checkerMain, self).__init__(parent)
         self.setupUi(self)
-        self._registerCallbacks()
-        self._initSegmentMagic()
+        self._register_callbacks()
+        self._init_segment_magic()
         self.progressBar.reset()
         self.lcdNumber_errorRate.display(0)
         self.fileFolderName = None
@@ -41,7 +41,7 @@ class checkerMain(QMainWindow, Ui_MainWindow):
         self.totalErrorLines = 0
         self.totalCodeLines = 0
 
-    def _initSegmentMagic(self):
+    def _init_segment_magic(self):
         self.segmentMagicStart = u"/*******************************************************************************"
         self.definitionMagic   = u" * Definitions"
         self.variableMagic     = u" * Variables"
@@ -50,7 +50,7 @@ class checkerMain(QMainWindow, Ui_MainWindow):
         self.apiMagic          = u" * API"
         self.segmentMagicEnd   = u" ******************************************************************************/"
 
-    def _registerCallbacks(self):
+    def _register_callbacks(self):
         self.pushButton_browseFileFolder.clicked.connect(self.callbackBrowseFileFolder)
         self.pushButton_doCheck.clicked.connect(self.callbackDoCheck)
         self.pushButton_saveLog.clicked.connect(self.callbackSaveLog)
@@ -66,12 +66,12 @@ class checkerMain(QMainWindow, Ui_MainWindow):
         #self.fileFolderName = self.fileFolderName.encode('utf-8').encode("gbk")
         self.textEdit_inputFileFolder.setPlainText(self.fileFolderName)
 
-    def _fileCheckSeparator(self, filename):
+    def _file_check_separator(self, filename):
         self.textEdit_log.append(u">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>----------File----------<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
         self.textEdit_log.append(u"Start to check  " + filename + "\n")
 
-    def _isUtf8AsciiFile(self, filename):
-        self._fileCheckSeparator(filename)
+    def _is_utf8_ascii_file(self, filename):
+        self._file_check_separator(filename)
         fileObj = open(filename,'rb')
         fileDat = fileObj.read()
         # https://chardet.readthedocs.io/en/latest/supported-encodings.html
@@ -85,43 +85,43 @@ class checkerMain(QMainWindow, Ui_MainWindow):
             self.textEdit_log.append(u"【ERROR】: Cannot support Non-'UTF-8'/'ASCII'(100%) encoded file \n")
             return False
 
-    def _checkSegment(self, content, segmentMagic):
+    def _check_segment(self, content, segmentMagic):
         segment = self.segmentMagicStart + u"\n" + segmentMagic + u"\n" + self.segmentMagicEnd
         if content.find(segment) == -1:
             self.textEdit_log.append(u"【ERROR】: Below general comment is missed in the file")
             self.textEdit_log.append(segment)
 
-    def _checkSegments(self, filename, fileType):
+    def _check_segments(self, filename, fileType):
         with open(filename, mode="r", encoding="utf-8") as fileObj:
             content = fileObj.read()
-            self._checkSegment(content, self.definitionMagic)
+            self._check_segment(content, self.definitionMagic)
             if fileType == kFileType_Header:
-                self._checkSegment(content, self.apiMagic)
+                self._check_segment(content, self.apiMagic)
             elif fileType == kFileType_Source:
-                self._checkSegment(content, self.variableMagic)
-                self._checkSegment(content, self.prototypeMagic)
-                self._checkSegment(content, self.codeMagic)
+                self._check_segment(content, self.variableMagic)
+                self._check_segment(content, self.prototypeMagic)
+                self._check_segment(content, self.codeMagic)
             else:
                 pass
             fileObj.close()
 
-    def _updateTotalErrorLines(self):
+    def _update_total_error_lines(self):
         self.lineEdit_totalErrorLines.clear()
         self.lineEdit_totalErrorLines.setText(str(self.totalErrorLines))
 
-    def _updateTotalCodeLines(self):
+    def _update_total_code_lines(self):
         self.lineEdit_totalCodeLines.clear()
         self.lineEdit_totalCodeLines.setText(str(self.totalCodeLines))
 
-    def _printCommonError(self, line, error):
+    def _print_common_error(self, line, error):
         if line != None:
             self.textEdit_log.append(u"【ERROR】 Line " + str(line) + u": " + error)
         else:
             self.textEdit_log.append(u"【ERROR】: " + error)
         self.totalErrorLines += 1
-        self._updateTotalErrorLines()
+        self._update_total_error_lines()
 
-    def _commonFindContinuationCharacter(self, content):
+    def _common_find_continuation_character(self, content):
         contIndex = content.rfind(u"\\\n")
         if (contIndex != -1) and (contIndex == len(content) - len(u"\\\n")):
             self.continuationContent += content[0:contIndex]
@@ -131,7 +131,7 @@ class checkerMain(QMainWindow, Ui_MainWindow):
                 self.continuationContent += content
             return False
 
-    def _commonRemoveInitialBlanks(self, content):
+    def _common_remove_initial_blanks(self, content):
         startIndex = 0
         while True:
             if startIndex == len(content):
@@ -142,33 +142,33 @@ class checkerMain(QMainWindow, Ui_MainWindow):
                 startIndex += 1
         return content[startIndex:len(content)]
 
-    def _commonLinePreprocess(self, content):
-        if self._commonFindContinuationCharacter(content):
+    def _common_line_preprocess(self, content):
+        if self._common_find_continuation_character(content):
             return None, False
         else:
             if self.continuationContent != '':
                 content = self.continuationContent
                 self.continuationContent = ''
-        content = self._commonRemoveInitialBlanks(content)
+        content = self._common_remove_initial_blanks(content)
         if content == None:
             return content, False
         else:
             return content, True
 
-    def _commonFindInvalidCodeLine(self, content):
+    def _common_find_invalid_code_line(self, content):
         return ((content.find(u"/*") == 0) or \
                 (content.find(u"#if") == 0) or \
                 (content.find(u"#else") == 0) or \
                 (content.find(u"#endif") == 0))
 
-    def _isCamelCaseNamingStyle(self, content):
+    def _is_camel_case_naming_style(self, content):
         return ((content[0].isalpha() and content[0].islower()) and \
                 (content.find(u"_") == -1))
 
-    def _isLinuxUnderlineNamingStyle(self, content):
+    def _is_linux_underline_naming_style(self, content):
         return content.islower() and content[0] != u"_"
 
-    def _isPascalNamingStyle(self, content):
+    def _is_pascal_naming_style(self, content):
         idx = content.find(u"_")
         if idx != -1:
             if (idx == 0) or (not (content[0:idx].isalpha() and content[0:idx].isupper())):
@@ -179,7 +179,7 @@ class checkerMain(QMainWindow, Ui_MainWindow):
         return ((content[idx].isalpha() and content[idx].isupper()) and \
                 (content[idx:len(content)].find(u"_") == -1))
 
-    def _getDefinitionWord(self, content, startIdx, endChar):
+    def _get_definition_word(self, content, startIdx, endChar):
         wordLoc = [0, 0]
         while True:
             startIdx += 1
@@ -193,49 +193,49 @@ class checkerMain(QMainWindow, Ui_MainWindow):
                 pass
         return content[wordLoc[0]:wordLoc[1]]
 
-    def _isValidMacroName(self, macro):
+    def _is_valid_macro_name(self, macro):
         return macro.isupper() and macro[0] != u"_"
 
-    def _doCheckMacro(self, line, content):
+    def _do_check_macro(self, line, content):
         idx = len(u"#define") - 1
-        macro = self._getDefinitionWord(content, idx, u"(")
-        if not self._isValidMacroName(macro):
-            self._printCommonError(line, u"This macro <" + macro + u"> starts with '_' or it is not all capitalized")
+        macro = self._get_definition_word(content, idx, u"(")
+        if not self._is_valid_macro_name(macro):
+            self._print_common_error(line, u"This macro <" + macro + u"> starts with '_' or it is not all capitalized")
 
-    def _isValidEnumStructTypeName(self, mtype):
+    def _is_valid_enum_struct_type_name(self, mtype):
         return mtype.islower() and mtype[0] == u"_"
 
-    def _isValidEnumStructTypedefName(self, mtype):
+    def _is_valid_enum_struct_typedef_name(self, mtype):
         return mtype.islower() and mtype[0] != u"_" and mtype[len(mtype)-2:len(mtype)] == u"_t"
 
-    def _isValidEnumeratorName(self, enum):
+    def _is_valid_enumerator_name(self, enum):
         return enum[0] == u"k" and enum[1].isupper()
 
-    def _doCheckEnum(self, line, content):
+    def _do_check_enum(self, line, content):
         if not self.isEnumOnProgress:
             idx = content.find(u"enum") + len(u"enum") - 1
-            enumType = self._getDefinitionWord(content, idx, u"{")
-            if not self._isValidEnumStructTypeName(enumType):
-                self._printCommonError(line, u"This enum type name <" + enumType + u"> is not valid")
+            enumType = self._get_definition_word(content, idx, u"{")
+            if not self._is_valid_enum_struct_type_name(enumType):
+                self._print_common_error(line, u"This enum type name <" + enumType + u"> is not valid")
             else:
                 self.onProgressEnumName = enumType
                 self.isEnumOnProgress = True
         else:
             if content[0] == "}":
-                enumTypedef = self._getDefinitionWord(content, 0, u";")
-                if enumTypedef[0] != u";" and (not self._isValidEnumStructTypedefName(enumTypedef)):
-                    self._printCommonError(line, u"This enum typedef name <" + enumTypedef + u"> is not valid")
+                enumTypedef = self._get_definition_word(content, 0, u";")
+                if enumTypedef[0] != u";" and (not self._is_valid_enum_struct_typedef_name(enumTypedef)):
+                    self._print_common_error(line, u"This enum typedef name <" + enumTypedef + u"> is not valid")
                 self.isEnumOnProgress = False
             elif content[0] != "{":
                 # If first invalid enumerator is found, then it will stop checking the following enumerators (nno matter it is valid or not)
-                if not self._isValidEnumeratorName(content[0:2]):
-                    self._printCommonError(line, u"This enum type <" + self.onProgressEnumName + u"> contains invalid enumerator name")
+                if not self._is_valid_enumerator_name(content[0:2]):
+                    self._print_common_error(line, u"This enum type <" + self.onProgressEnumName + u"> contains invalid enumerator name")
                     self.isEnumOnProgress = False
 
-    def _isValidStructMemberName(self, struct):
-        return self._isValidVariableName(struct, False)
+    def _is_valid_struct_member_name(self, struct):
+        return self._is_valid_variable_name(struct, False)
 
-    def _findValidLocalVariable(self, content, isBssSection=True):
+    def _find_valid_local_variable(self, content, isBssSection=True):
         # Try to find code expression according to the first "=" or ";"
         midIndex = -1
         if not isBssSection:
@@ -263,57 +263,57 @@ class checkerMain(QMainWindow, Ui_MainWindow):
                 variable = variable[1:len(variable)]
             else:
                 break
-        return self._isValidVariableName(variable, False)
+        return self._is_valid_variable_name(variable, False)
 
-    def _doCheckStruct(self, line, content):
+    def _do_check_struct(self, line, content):
         if not self.isStructOnProgress:
             idx = content.find(u"struct") + len(u"struct") - 1
-            structType = self._getDefinitionWord(content, idx, u"{")
-            if not self._isValidEnumStructTypeName(structType):
-                self._printCommonError(line, u"This struct type name <" + structType + u"> is not valid")
+            structType = self._get_definition_word(content, idx, u"{")
+            if not self._is_valid_enum_struct_type_name(structType):
+                self._print_common_error(line, u"This struct type name <" + structType + u"> is not valid")
             else:
                 self.onProgressStructName = structType
                 self.isStructOnProgress = True
         else:
             if content[0] == "}":
-                structTypedef = self._getDefinitionWord(content, 0, u";")
-                if structTypedef[0] != u";" and (not self._isValidEnumStructTypedefName(structTypedef)):
-                    self._printCommonError(line, u"This struct typedef name <" + structTypedef + u"> is not valid")
+                structTypedef = self._get_definition_word(content, 0, u";")
+                if structTypedef[0] != u";" and (not self._is_valid_enum_struct_typedef_name(structTypedef)):
+                    self._print_common_error(line, u"This struct typedef name <" + structTypedef + u"> is not valid")
                 self.isStructOnProgress = False
             elif content[0] != "{":
                 # If first invalid member is found, then it will stop checking the following member (nno matter it is valid or not)
-                if not self._findValidLocalVariable(content):
-                    self._printCommonError(line, u"This struct type <" + self.onProgressStructName + u"> contains invalid member name")
+                if not self._find_valid_local_variable(content):
+                    self._print_common_error(line, u"This struct type <" + self.onProgressStructName + u"> contains invalid member name")
                     self.isStructOnProgress = False
 
-    def _doCheckDefinition(self, line, content):
-        content, status = self._commonLinePreprocess(content)
+    def _do_check_definition(self, line, content):
+        content, status = self._common_line_preprocess(content)
         if not status:
             return
-        if not (self._commonFindInvalidCodeLine(content)):
+        if not (self._common_find_invalid_code_line(content)):
             if content.find(u"#define") == 0:
-                self._doCheckMacro(line, content)
+                self._do_check_macro(line, content)
             else:
                 if self.isEnumOnProgress or \
                    (content.find(u"enum") == 0 or (content.find(u"typedef") == 0 and content.find(u"enum") != -1)):
-                    self._doCheckEnum(line, content)
+                    self._do_check_enum(line, content)
                 elif self.isStructOnProgress or \
                      (content.find(u"struct") == 0 or (content.find(u"typedef") == 0 and content.find(u"struct") != -1)):
-                    self._doCheckStruct(line, content)
+                    self._do_check_struct(line, content)
                 else:
                     pass
 
-    def _isValidVariableName(self, variable, isGlobal):
+    def _is_valid_variable_name(self, variable, isGlobal):
         idx = 0
         if isGlobal:
             idx = 2
-        return self._isCamelCaseNamingStyle(variable[idx:len(variable)])
+        return self._is_camel_case_naming_style(variable[idx:len(variable)])
 
-    def _doCheckGlobalVariable(self, line, content):
-        content, status = self._commonLinePreprocess(content)
+    def _do_check_global_variable(self, line, content):
+        content, status = self._common_line_preprocess(content)
         if not status:
             return
-        if not (self._commonFindInvalidCodeLine(content) or \
+        if not (self._common_find_invalid_code_line(content) or \
                 (content.find(u".") == 0) or \
                 (content.find(u"{") == 0) or \
                 (content.find(u"}") == 0)):
@@ -336,7 +336,7 @@ class checkerMain(QMainWindow, Ui_MainWindow):
             # If there is a "," in the code expression, that means each line has more than one variable
             expression = content[0:fndIndex]
             if expression.find(u",") != -1:
-                self._printCommonError(line, u"Only one variable can be defined per line")
+                self._print_common_error(line, u"Only one variable can be defined per line")
                 return
             else:
                 # Try to find variable word according to the last blank in code expression
@@ -352,24 +352,24 @@ class checkerMain(QMainWindow, Ui_MainWindow):
                 # Process prefix in variable word
                 if kLangKeyWord_Static in expression:
                     if variable[0:2] != u"s_":
-                        self._printCommonError(line, u"A prefix 's_' is missed in the static variable <" + variable + u">")
+                        self._print_common_error(line, u"A prefix 's_' is missed in the static variable <" + variable + u">")
                         return
                 else:
                     if variable[0:2] != u"g_":
-                        self._printCommonError(line, u"A prefix 'g_' is missed in the global variable <" + variable + u">")
+                        self._print_common_error(line, u"A prefix 'g_' is missed in the global variable <" + variable + u">")
                         return
-                if not self._isValidVariableName(variable, True):
-                    self._printCommonError(line, u"This global variable <" + variable + u"> is not named after CamelCase")
+                if not self._is_valid_variable_name(variable, True):
+                    self._print_common_error(line, u"This global variable <" + variable + u"> is not named after CamelCase")
                     return
 
-    def _isValidFunctionName(self, function):
-        return self._isPascalNamingStyle(function) or self._isLinuxUnderlineNamingStyle(function)
+    def _is_valid_function_name(self, function):
+        return self._is_pascal_naming_style(function) or self._is_linux_underline_naming_style(function)
 
-    def _doCheckCode(self, line, content):
-        content, status = self._commonLinePreprocess(content)
+    def _do_check_code(self, line, content):
+        content, status = self._common_line_preprocess(content)
         if not status:
             return
-        if not self._commonFindInvalidCodeLine(content):
+        if not self._common_find_invalid_code_line(content):
             if not self.bracePairs:
                 # Try to find function expression according to the first "("
                 fndIndex = content.find(u"(")
@@ -379,8 +379,8 @@ class checkerMain(QMainWindow, Ui_MainWindow):
                     blankIndex = expression.rfind(u" ")
                     function = expression[blankIndex+1:fndIndex]
                     #self.textEdit_log.insertPlainText("-- Find " + function + "\n")
-                    if not self._isValidFunctionName(function):
-                        self._printCommonError(line, u"This function <" + function + u"()> starts with '_' or it is not named after Pascal / Linux style")
+                    if not self._is_valid_function_name(function):
+                        self._print_common_error(line, u"This function <" + function + u"()> starts with '_' or it is not named after Pascal / Linux style")
             # Count the "{ }" pair, function name resides out of any pair
             if content.find(u"{") != -1:
                 self.bracePairs += 1
@@ -390,8 +390,8 @@ class checkerMain(QMainWindow, Ui_MainWindow):
             else:
                 pass
 
-    def _doCheckSourceFile(self, sourceFilename):
-        self._checkSegments(sourceFilename, kFileType_Source)
+    def _do_check_source_file(self, sourceFilename):
+        self._check_segments(sourceFilename, kFileType_Source)
         with open(sourceFilename, mode="r", encoding="utf-8") as fileObj:
             lineCount = 0
             blankLines = 0
@@ -418,23 +418,23 @@ class checkerMain(QMainWindow, Ui_MainWindow):
                      isSegmentFound = True
                 else:
                     if segmentType == kSegmentType_Definition:
-                        #self.textEdit_log.insertPlainText("_doCheckDefinition(): \n")
+                        #self.textEdit_log.insertPlainText("_do_check_definition(): \n")
                         try:
-                            self._doCheckDefinition(lineCount, lineContent)
+                            self._do_check_definition(lineCount, lineContent)
                         except:
                             pass
                     elif segmentType == kSegmentType_Variable:
-                        #self.textEdit_log.insertPlainText("_doCheckGlobalVariable(): \n")
+                        #self.textEdit_log.insertPlainText("_do_check_global_variable(): \n")
                         try:
-                            self._doCheckGlobalVariable(lineCount, lineContent)
+                            self._do_check_global_variable(lineCount, lineContent)
                         except:
                             pass
                     elif segmentType == kSegmentType_Prototype:
                         pass
                     elif segmentType == kSegmentType_Code:
-                        #self.textEdit_log.insertPlainText("_doCheckCode(): \n")
+                        #self.textEdit_log.insertPlainText("_do_check_code(): \n")
                         try:
-                            self._doCheckCode(lineCount, lineContent)
+                            self._do_check_code(lineCount, lineContent)
                         except:
                             pass
                     else:
@@ -442,9 +442,9 @@ class checkerMain(QMainWindow, Ui_MainWindow):
             fileObj.close()
             self.textEdit_log.append(u"")
             self.totalCodeLines += lineCount - blankLines
-            self._updateTotalCodeLines()
+            self._update_total_code_lines()
 
-    def _checkHeaderGuardMacro(self, filename):
+    def _check_header_guard_macro(self, filename):
         with open(filename, mode="r", encoding="utf-8") as fileObj:
             name = os.path.split(filename)[1]
             name = name.upper()
@@ -453,12 +453,12 @@ class checkerMain(QMainWindow, Ui_MainWindow):
             magic = u"#ifndef " + name
             content = fileObj.read()
             if content.find(magic) == -1:
-                self._printCommonError(None, u"<" + magic + u"> is missed in this header file")
+                self._print_common_error(None, u"<" + magic + u"> is missed in this header file")
             fileObj.close()
 
-    def _doCheckHeaderFile(self, headerFilename):
-        self._checkHeaderGuardMacro(headerFilename)
-        self._checkSegments(headerFilename, kFileType_Header)
+    def _do_check_header_file(self, headerFilename):
+        self._check_header_guard_macro(headerFilename)
+        self._check_segments(headerFilename, kFileType_Header)
         with open(headerFilename, mode="r", encoding="utf-8") as fileObj:
             lineCount = 0
             blankLines = 0
@@ -481,9 +481,9 @@ class checkerMain(QMainWindow, Ui_MainWindow):
                      isSegmentFound = True
                 else:
                     if segmentType == kSegmentType_Definition:
-                        #self.textEdit_log.insertPlainText("_doCheckDefinition(): \n")
+                        #self.textEdit_log.insertPlainText("_do_check_definition(): \n")
                         try:
-                            self._doCheckDefinition(lineCount, lineContent)
+                            self._do_check_definition(lineCount, lineContent)
                         except:
                             pass
                     elif segmentType == kSegmentType_API:
@@ -493,19 +493,19 @@ class checkerMain(QMainWindow, Ui_MainWindow):
             fileObj.close()
             self.textEdit_log.append(u"")
             self.totalCodeLines += lineCount - blankLines
-            self._updateTotalCodeLines()
+            self._update_total_code_lines()
 
-    def _detectFileType(self, filename):
+    def _detect_file_type(self, filename):
         if os.path.isfile(filename):
             filetype = os.path.splitext(filename)[1]
             if filetype == kFileType_Header:
-                if not self._isUtf8AsciiFile(filename):
+                if not self._is_utf8_ascii_file(filename):
                     return
-                self._doCheckHeaderFile(filename)
+                self._do_check_header_file(filename)
             elif filetype == kFileType_Source:
-                if not self._isUtf8AsciiFile(filename):
+                if not self._is_utf8_ascii_file(filename):
                     return
-                self._doCheckSourceFile(filename)
+                self._do_check_source_file(filename)
             else:
                 pass
 
@@ -518,14 +518,14 @@ class checkerMain(QMainWindow, Ui_MainWindow):
         if self.fileFolderName != None:
             self.totalErrorLines = 0
             self.totalCodeLines = 0
-            self._updateTotalErrorLines()
-            self._updateTotalCodeLines()
+            self._update_total_error_lines()
+            self._update_total_code_lines()
             if os.path.isdir(self.fileFolderName):
                 for root, dirs, files in os.walk(self.fileFolderName, topdown=True):
                     for name in files:
-                        self._detectFileType(os.path.join(root, name))
+                        self._detect_file_type(os.path.join(root, name))
             else:
-                self._detectFileType(self.fileFolderName)
+                self._detect_file_type(self.fileFolderName)
             self._showErrorRate()
 
     def callbackSaveLog(self):
