@@ -37,5 +37,5 @@
 > * 支持过滤文件/文件夹规则设置  
 > * 支持检查的实时进度条显示  
 
-![](http://henjay724.com/image/github/MCUXpresso-SDK-CodingStyleChecker_v0.5.PNG)
+![](./images/build_v0.5.PNG)
 
